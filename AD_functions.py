@@ -39,10 +39,10 @@ def dwf_check_num_of_devices():
 def dwf_search_for_devices():
     result, num_of_devices_connected = dwf_check_num_of_devices()
     if result == False:
-        exit_program(exit_cases.NO_DEVICES_FOUND)
+        print("No devices found, please check if you connected Analog Discovery properly")
     else:
-        windows_api.windows_message(
-            "Device found.", "Found " + num_of_devices_connected + " devices. Opening first", 0)
+        print("Device found.", "Found " +
+              num_of_devices_connected + " devices. Opening first")
 
 
 def dwf_open_first_device_as_analogout():

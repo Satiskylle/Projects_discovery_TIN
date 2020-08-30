@@ -32,21 +32,21 @@ class MainFrame(wx.Frame):
 
         my_box_sizer2.Add(self.plotter, 0, wx.ALL | wx.EXPAND, 5)
 
-        btnDeviceSearch = wx.Button(self.left_Panel, label="Search for device")
+        btnDeviceSearch = wx.Button(self.left_Panel, label="SEARCH FOR DEVICE")
         btnDeviceSearch.Bind(wx.EVT_BUTTON, self.on_press_search)
         my_box_sizer.Add(btnDeviceSearch, 0, wx.ALL | wx.LEFT | wx.EXPAND, 5)
 
         btnStartMeasurement = wx.Button(
-            self.left_Panel, label="Start Measurement")
+            self.left_Panel, label="START MEASUREMENT")
         btnStartMeasurement.Bind(wx.EVT_BUTTON, self.on_press_measurement)
         my_box_sizer.Add(btnStartMeasurement, 0,
                          wx.ALL | wx.LEFT | wx.EXPAND, 5)
 
-        btnShowResults = wx.Button(self.left_Panel, label="Show Results")
+        btnShowResults = wx.Button(self.left_Panel, label="SHOW RESULTS")
         btnShowResults.Bind(wx.EVT_BUTTON, self.on_press_show_results)
         my_box_sizer.Add(btnShowResults, 0, wx.ALL | wx.LEFT | wx.EXPAND, 5)
 
-        btnExit = wx.Button(self.left_Panel, label="Exit")
+        btnExit = wx.Button(self.left_Panel, label="EXIT")
         btnExit.Bind(wx.EVT_BUTTON, self.on_press_exit)
         my_box_sizer.Add(btnExit, 0, wx.ALL | wx.LEFT | wx.EXPAND, 5)
 
@@ -55,7 +55,8 @@ class MainFrame(wx.Frame):
                                            0.4 * window_hight),
                                      style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)
 
-        my_box_sizer2.Add(self.text_ctrl, 0, wx.ALL | wx.CENTER | wx.EXPAND, 5)
+        my_box_sizer2.Add(self.text_ctrl, 0, wx.ALL |
+                          wx.CENTER | wx.EXPAND, 5)
 
         redir = RedirectText(self.text_ctrl)
         sys.stdout = redir
@@ -65,7 +66,7 @@ class MainFrame(wx.Frame):
         self.Show()
 
     def on_press_measurement(self, event):
-        print("On press measurement")
+        print("Starting measurement procedure")
         # idxDevice = dwf_open_first_device_as_analogout()
 
         # waveform_test_channel = 0
@@ -80,14 +81,15 @@ class MainFrame(wx.Frame):
         # time.sleep(10)
         # print("Done")
         # idxDevice.close()
+        print("Measutrement procedure ended. You can check the results by clicking 'SHOW RESULTS'")
 
     def on_press_search(self, event):
-        print("On press search")
+        print("Searching for devices ... ")
         dwf_search_for_devices()
 
     def on_press_show_results(self, event):
 
-        print("Plotting ADC results")
+        print("Plotted ADC results")
 
         NUMB_OF_SAMPLES = 1000
         MAX_VOLTAGE = 5
@@ -98,9 +100,10 @@ class MainFrame(wx.Frame):
             MAX_VOLTAGE, NUMB_OF_SAMPLES)
 
         ADC = plot.PolyMarker(ADC_data, marker='circle',
-                              size=0.5, colour='black')
+                              size=0.5, colour='black', legend="ADC data")
 
-        IdealVoltage = plot.PolyLine(Ideal_Voltage_data, width=1, colour='red')
+        IdealVoltage = plot.PolyLine(
+            Ideal_Voltage_data, width=1, colour='red', legend="Ideal Voltage")
 
         graph = plot.PlotGraphics(
             [ADC, IdealVoltage], 'Graph of ADC results', 'Samples', 'Voltage [V]')
@@ -109,8 +112,8 @@ class MainFrame(wx.Frame):
                           yAxis=(0, MAX_VOLTAGE))
 
     def on_press_exit(self, event):
-        print("On press exit")
-        exit_program(exit_cases.END_OF_PROGRAM)
+        print("Exiting program")
+        quit()
 
 
 class RedirectText:
