@@ -52,12 +52,7 @@ class MainFrame(wx.Frame):
 
     def on_press_measurement(self, event):
         print("On press measurement")
-        # idxDevice, hdwf = dwf_open_first_device_as_analogout()
-        # idxDevice, hdwf =
-        dwf_dio, dwf_aio, dwf_do, dwf_di, dwf_ao = dwf_open_first_device()
-        self.to_plot = spi_send_data(dwf_do, dwf_di, dwf_dio)
-
-        # dwf_configure_spi(hdwf, 10)
+        idxDevice = dwf_open_first_device_as_analogout()
 
         waveform_test_channel = 0
         waveform_test_frequency = 0.1
@@ -67,29 +62,24 @@ class MainFrame(wx.Frame):
         #                            waveform_test_amplitude, test_waveform_ascending_and_descending)
 
         test_adc(dwf_ao, waveform_test_channel, dwf_dio)
-        # print("Signal generated for 10 seconds. Started")
-        # time.sleep(10)
-        # print("Done")
-        # idxDevice.close()
-
-        dwf_close_device()
+        print("Signal generated for 10 seconds. Started")
+        time.sleep(10)
+        print("Done")
+        idxDevice.close()
 
     def on_press_search(self, event):
         self.plot_results()
-        # dwf_search_for_devices()
-        # dwf_open_first_device_as_analogout()
+        dwf_search_for_devices()
 
     def on_press_exit(self, event):
         print("On press exit")
-        # exit_program(exit_cases.END_OF_PROGRAM)
+        exit_program(exit_cases.END_OF_PROGRAM)
 
-        # def print_in_monitor(self):
-        #     wx.Printer(data="Hell
     def plot_results(self):
-        # x = [*range(0, 4096)]
-        # y = [*range(0, 4096)]
+        x = [*range(0, 4096)]
+        y = [*range(0, 4096)]
 
-        plt.plot(self.to_plot)  # x, y)  # self.to_plot)
+        plt.plot(x, y)  # (self.to_plot)
         plt.show()
 
 

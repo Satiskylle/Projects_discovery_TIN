@@ -3,11 +3,6 @@ import time
 
 import windows_api
 
-from ctypes import *
-import math
-import sys
-import ctypes
-
 ##############################################
 
 
@@ -50,60 +45,9 @@ def dwf_search_for_devices():
             "Device found.", "Found " + num_of_devices_connected + " devices. Opening first", 0)
 
 
-def dwf_open_first_device():
+def dwf_open_first_device_as_analogout():
     print("Opening first device")
-    # lol = cdll.LoadLibrary("dwf.dll")
-    # hdwf = c_int()
-    # lol.FDwfDeviceOpen(c_int(-1), byref(hdwf))
-    dwf_aio = dwf.DwfAnalogIO()
-    dwf_do = dwf.DwfDigitalOut(dwf_aio)
-    dwf_di = dwf.DwfDigitalIn(dwf_do)
-    dwf_ao = dwf.DwfAnalogOut(dwf_di)
-    dwf_dio = dwf.DwfDigitalIO(dwf_ao)
-    # enable positive supply
-    dwf_aio.channelNodeSet(0, 0, True)
-    # set voltage to 5 V
-    dwf_aio.channelNodeSet(0, 1, 5.0)
-    # set voltage to 3.3 V
-    # dwf_aio.channelNodeSet(1, 0, True)
-    # dwf_aio.channelNodeSet(1, 1, -3.3)
-    dwf_aio.enableSet(True)
-
-    return dwf_dio, dwf_aio, dwf_do, dwf_di, dwf_ao
-
-
-def dwf_close_device():
-    dwf_aio.close()
-    dwf_do.close()
-    dwf_di.close()
-    dwf_ao.close()
-    # lol.FDwfDigitalSpiFrequencySet(hdwf, 10)
-
-    # print("LOL1")
-
-    # lol.nodeEnableSet(0, lol.NODE.CARRIER, True)  # dodalem to
-    # lol.FDwfAnalogIOChannelNodeSet(hdwf, c_int(0), c_int(1), c_double(3.3))
-    # lol.FDwfAnalogIOEnableSet(hdwf, c_int(True))
-    # lol.nodeOffsetSet(0, lol.NODE.CARRIER, 3.3)
-    # print("LOL2")
-
-    # time.sleep(20)
-    #print("END! ")
-    # lol.FDwfAnalogIOEnableSet(hdwf, c_int(False))
-
-    # dwf.FDwfDeviceOpen(c_int(-1), byref(hdwf))
-
-    # lol = cdll.dwf
-    # hdwf = c_int()
-    # lol.FDwfDeviceConfigOpen(c_int(-1), c_int(3), byref(hdwf))
-    # lol.FDwfDigitalSpiFrequencySet(hdwf, 10)
-    # dwf_dev = dwf.DwfDigitalOut()
-    # dwf_ao = dwf.DwfAnalogOut(dwf_dev)
-
-    # dwf_ao = "A"
-    # dwf_dev = "B"
-
-    # return dwf_ao, dwf_dev  # return dwf_ao, dwf_do
+    return dwf.DwfAnalogOut()
 
 
 """ @brief This function generates waveform on channel @channel from @rgdSamples_custom_values
@@ -135,11 +79,9 @@ def dwf_waveform_stop(dwf_ao, channel):
 
 
 def test_adc(dwf_ao, channel, dwf_dio):
-    print("HELLLO")
     for offset in range(0, 4096):
         dwf_generate_custom_waveform(dwf_ao, channel, 0, 0, offset/4096)
         dwf_waveform_start(dwf_ao, channel)
-        get_data_from_io_pins(dwf_dio)
         time.sleep(0.01)
 
 
@@ -179,98 +121,3 @@ idxDevice.close()
 
 exit_program(exit_cases.END_OF_PROGRAM)
 '''
-
-# MCP3002 -- SERIAL COMMUNICATION FUNCTIONS
-
-
-def spi_send_data(dwf_do, dwf_di, dwf_dio):
-    # SPI parameters
-    CPOL = 0  # or 1
-    CPHA = 0  # or 1
-    hzSys = dwf_do.internalClockInfo()
-    hzFreq = 1e6
-    cBits = 2
-    rgdData = [0x02]
-
-# serialization time length
-    dwf_do.runSet((cBits + 0.5) / hzFreq)
-
-# DIO 2 Select
-    dwf_do.enableSet(2, True)
-    # output high while DigitalOut not running
-    dwf_do.idleSet(2, dwf_do.IDLE.HIGH)
-    # output constant low while running
-    dwf_do.counterInitSet(2, False, 0)
-    dwf_do.counterSet(2, 0, 0)
-
-# DIO 1 Clock
-    dwf_do.enableSet(1, True)
-    # set prescaler twice of SPI frequency
-    dwf_do.dividerSet(1, int(hzSys / hzFreq / 2))
-    # 1 tick low, 1 tick high
-    dwf_do.counterSet(1, 1, 1)
-    # start with low or high based on clock polarity
-    dwf_do.counterInitSet(1, CPOL, 1)
-    dwf_do.idleSet(1, dwf_do.IDLE.HIGH if CPOL else dwf_do.IDLE.LOW)
-
-    # DIO 3 Data
-    dwf_do.enableSet(3, True)
-    dwf_do.typeSet(3, dwf_do.TYPE.CUSTOM)
-    # for high active clock, hold the first bit for 1.5 periods
-    dwf_do.dividerInitSet(3, int((1+0.5*CPHA)*hzSys/hzFreq))
-    # SPI frequency, bit frequency
-    dwf_do.dividerSet(3, int(hzSys / hzFreq))
-    # data sent out LSB first
-    dwf_do.dataSet(3, dwf.create_bitdata_stream(rgdData, 2))
-
-    # # acquisition
-    # dwf_di.dividerSet(1)
-    # # 16bit per sample format
-    # dwf_di.sampleFormatSet(16)
-    # # set number of sample to acquire
-    # N_SAMPLES = 10000
-    # dwf_di.bufferSizeSet(N_SAMPLES)
-
-    # begin acquisition and send data
-    dwf_do.configure(True)
-    # dwf_di.configure(False, True)
-    print("Acquisition started, waiting to finish...")
-
-    # this is probably starting sending spi data
-    # dwf_do.configure(True)
-    # print("Generated SPI signal \ sent spi data")
-
-    # while True:
-    #     sts = dwf_di.status(True)
-    #     print("STS VAL: " + str(sts))
-    #     if sts == dwf_di.STATE.DONE:
-    #         break
-    #     time.sleep(1)
-    # endofacquisition
-    # for v in range(0, 1000):
-    #    get_data_from_io_pins(dwf_dio)
-    #    time.sleep(0.001)
-
-    print("Acquisition finished")
-
-    # get samples, byte size
-    # rgwSamples = dwf_di.statusData(N_SAMPLES)
-
-    # dwf_do.reset()
-    # dwf_di.reset()
-
-    # print(rgwSamples)
-
-    # return rgwSamples
-
-
-# def spi_receive_data():
-
-    # dwf_do.reset()
-    # dwf_do.close()
-
-def get_data_from_io_pins(dwf_dio):
-    dwf_dio.status()
-    dwRead = dwf_dio.inputStatus()
-    # remove 0b on front, 32 digits
-    print("Digital IO: " + bin(dwRead)[2:].zfill(32))
