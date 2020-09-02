@@ -66,6 +66,15 @@ def dwf_open_first_device():
     return dwf_dio, dwf_aio, dwf_do, dwf_di, dwf_ao
 
 
+def dwf_close_device(dwf_dio, dwf_aio, dwf_do, dwf_di, dwf_ao):
+    print("Closing devices")
+    dwf_aio.close()
+    dwf_do.close()
+    dwf_di.close()
+    dwf_ao.close()
+    dwf_dio.close()
+
+
 """ @brief This function generates waveform on channel @channel from @rgdSamples_custom_values
     @note  Use dwf_waveform_start to start generating waveform
     @param [in] dwf_ao - handle of dwf opened device (idxDevice)
@@ -98,7 +107,7 @@ def test_adc(dwf_ao, channel, dwf_dio):
     for offset in range(0, 4096):
         dwf_generate_custom_waveform(dwf_ao, channel, 0, 0, offset/4096)
         dwf_waveform_start(dwf_ao, channel)
-        time.sleep(0.01)
+        time.sleep(0.001)
 
 
 def exit_program(num_of_case):
@@ -112,7 +121,7 @@ def exit_program(num_of_case):
     quit(-num_of_case)
 
 
-###########################################################################     SPI
+# SPI
 
 
 def spi_send_data(dwf_do, dwf_di, dwf_dio):
@@ -192,6 +201,7 @@ def spi_send_data(dwf_do, dwf_di, dwf_dio):
 
     # print(rgwSamples)
     # return rgwSamples
+
 
 def get_data_from_io_pins(dwf_dio):
     dwf_dio.status()

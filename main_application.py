@@ -10,6 +10,7 @@ from additional_functions import *
 class MainFrame(wx.Frame):
 
     MAX_VOLTAGE = 5
+    ADC_RESOLUTION = 10
 
     WINDOW_WIDE = 1500
     WINDOW_HIGHT = 800
@@ -50,10 +51,6 @@ class MainFrame(wx.Frame):
         btnSet = wx.Button(self.left_Panel, label="SET VALUES")
         btnSet.Bind(wx.EVT_BUTTON, self.on_press_set_values)
 
-        btnCalculate = wx.Button(
-            self.left_Panel, label="CALCULATE ADC PARAMETERS")
-        btnCalculate.Bind(wx.EVT_BUTTON, self.on_press_calculate)
-
         # Info output
         self.text_ctrl = wx.TextCtrl(self.right_Panel,
                                      size=(0.8 * self.WINDOW_WIDE,
@@ -71,6 +68,13 @@ class MainFrame(wx.Frame):
             self.left_Panel, style=wx.LEFT | wx.EXPAND | wx.TE_PROCESS_ENTER, value="5")
         self.textEntryVoltage.SetEditable(True)
 
+        entryResolutionLabel = wx.StaticText(
+            self.left_Panel, -1, 'ADC Resolution')
+
+        self.textResolution = wx.TextCtrl(
+            self.left_Panel, style=wx.LEFT | wx.EXPAND | wx.TE_PROCESS_ENTER, value="10")
+        self.textResolution.SetEditable(True)
+
         # Panels arrangement
         # LEFT
         my_box_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -79,16 +83,20 @@ class MainFrame(wx.Frame):
         my_box_sizer.Add(btnStartMeasurement, 0,
                          wx.ALL | wx.LEFT | wx.EXPAND, 8)
         my_box_sizer.Add(btnShowResults, 0, wx.ALL | wx.LEFT | wx.EXPAND, 8)
-        my_box_sizer.Add(btnCalculate, 0, wx.ALL | wx.LEFT | wx.EXPAND, 8)
         my_box_sizer.Add(btnExit, 0, wx.ALL | wx.LEFT | wx.EXPAND, 8)
 
-        my_box_sizer.AddSpacer(50)
+        my_box_sizer.AddSpacer(30)
 
         my_box_sizer.Add(entryVoltageLabel, 0, wx.ALL | wx.LEFT | wx.EXPAND, 2)
         my_box_sizer.Add(self.textEntryVoltage, 0, wx.ALL | wx.LEFT, 5)
-        my_box_sizer.Add(btnSet, 0, wx.ALL | wx.LEFT | wx.EXPAND, 5)
 
-        my_box_sizer.AddSpacer(50)
+        my_box_sizer.AddSpacer(10)
+
+        my_box_sizer.Add(entryResolutionLabel, 0,
+                         wx.ALL | wx.LEFT | wx.EXPAND, 2)
+        my_box_sizer.Add(self.textResolution, 0, wx.ALL | wx.LEFT, 5)
+
+        my_box_sizer.Add(btnSet, 0, wx.ALL | wx.LEFT | wx.EXPAND, 5)
 
         self.left_Panel.SetSizer(my_box_sizer)
 
@@ -105,29 +113,35 @@ class MainFrame(wx.Frame):
 
     def on_press_set_values(self, event):
         self.MAX_VOLTAGE = float(self.textEntryVoltage.GetLineText(0))
+        self.ADC_RESOLUTION = int(self.textResolution.GetLineText(0))
+
         print("Test Max Voltage set to " + str(self.MAX_VOLTAGE))
+        print("ADC resolution set to " + str(self.ADC_RESOLUTION))
 
     def on_press_measurement(self, event):
         print("Starting measurement procedure")
         # idxDevice, hdwf = dwf_open_first_device_as_analogout()
-        # idxDevice, hdwf =
         dwf_dio, dwf_aio, dwf_do, dwf_di, dwf_ao = dwf_open_first_device()
-        self.to_plot = spi_send_data(dwf_do, dwf_di, dwf_dio)
+        #self.to_plot = spi_send_data(dwf_do, dwf_di, dwf_dio)
 
         # dwf_configure_spi(hdwf, 10)
 
         waveform_test_channel = 0
-        waveform_test_frequency = 0.1
-        waveform_test_amplitude = 1.0
+        #waveform_test_frequency = 0.1
+        #waveform_test_amplitude = 1.0
 
         # dwf_generate_custom_waveform(dwf_ao, waveform_test_channel, waveform_test_frequency,
         #                            waveform_test_amplitude, test_waveform_ascending_and_descending)
 
+        print("Testing ADC")
         test_adc(dwf_ao, waveform_test_channel, dwf_dio)
         # print("Signal generated for 10 seconds. Started")
         # time.sleep(10)
         # print("Done")
         # idxDevice.close()
+
+        dwf_close_device(dwf_dio, dwf_aio, dwf_do, dwf_di, dwf_ao)
+
         print("Measurement procedure ended. You can check the results by clicking 'SHOW RESULTS'")
 
     def on_press_search(self, event):
@@ -139,7 +153,7 @@ class MainFrame(wx.Frame):
 
         # ADC_data: list of generated data point tuples or list of collected results from AD
         (NUMB_OF_SAMPLES, ADC_data) = generate_quasi_adc_signal(
-            self.MAX_VOLTAGE, 5000, 10, 15000)
+            self.MAX_VOLTAGE, 5000, self.ADC_RESOLUTION, 15000)
 
         # Ideal_Voltage_data: list of data points tuples for voltage
         Ideal_Voltage_data = generate_ideal_voltage_data(
@@ -156,10 +170,6 @@ class MainFrame(wx.Frame):
 
         self.plotter.Draw(graph, xAxis=(0, NUMB_OF_SAMPLES),
                           yAxis=(0, self.MAX_VOLTAGE))
-
-    def on_press_calculate(self, event):
-        print("Calculating ADC parameters")
-        # TODO
 
     def on_press_exit(self, event):
         print("Exiting program")
